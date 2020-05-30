@@ -148,11 +148,8 @@ where
             panic!("No node in current enum.");
         };
 
-        println!("left:{:?},right: {:?}", left, right);
-        println!("node_size: {:?}", index.node_size);
         if (right - left) <= index.node_size {
             // leaf node
-            println!("fill heap");
             (left..(right + 1)).for_each(|i: usize| {
                 let item = &index.points[index.ids[i]];
                 let predicate_check = match predicate {
@@ -169,15 +166,12 @@ where
                     cos_lat,
                     sin_lat,
                 );
-                println!("leaf to heap {:?}", item);
-                println!("{:?}", dist);
                 if predicate_check {
                     q.push(PointDist(PointOrNode::Point(item), dist));
                 }
             })
         } else {
             // not a leaf node (has children). branch.
-            println!("branch node");
             let m = (left + right) >> 1;
             let mid_lng = index.points[index.ids[m]].get_x();
             let mid_lat = index.points[index.ids[m]].get_y();
@@ -189,9 +183,6 @@ where
             };
             if predicate_check {
                 let dist = great_circle_dist(lng, lat, mid_lng, mid_lat, cos_lat, sin_lat);
-                println!("branch to heap");
-                println!("{:?}", dist);
-                println!("{:?}", item);
                 q.push(PointDist(PointOrNode::Point(item), dist))
             }
 
@@ -240,7 +231,6 @@ where
                 let right_node_dist = box_dist(lng, lat, Box::new(&right_node), cos_lat, sin_lat);
                 q.push(PointDist(PointOrNode::Node(left_node), left_node_dist));
                 q.push(PointDist(PointOrNode::Node(right_node), right_node_dist));
-                println!("{:?}", q.len());
             }
         }
 
@@ -249,20 +239,13 @@ where
                 // a leaf node was found
                 let candidate = q.pop().unwrap();
                 if max_distance.is_some() && candidate.1 > max_distance.unwrap() {
-                    println!("max distance reached");
                     return result;
                 }
                 if let PointOrNode::Point(point) = candidate.0 {
-                    println!("candidate");
-                    println!("point :\t{:?}", point);
-                    println!("dist :\t{:?}", candidate.1);
                     result.push(point);
-                } else {
-                    println!("wut?");
                 }
 
                 if max_results.is_some() && result.len() == max_results.unwrap() {
-                    println!("stop results.");
                     return result; // this breaks the 'tree loop
                 }
             } else {
@@ -271,7 +254,6 @@ where
             };
         }
 
-        println!("heap length : \t{:?}", q.len());
         let node_dp = q.pop();
 
         match node_dp.unwrap() {
